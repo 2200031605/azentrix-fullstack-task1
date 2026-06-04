@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reports - Budget Tracker</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <div id="nav"></div>
+
+      <main class="content">
+        <header class="header">
+          <div>
+            <h1>Reports / Analytics</h1>
+            <p class="subtitle">Monthly income & expense breakdowns.</p>
+          </div>
+
+          <div class="month-picker">
+            <label for="monthInput">Month</label>
+            <input id="monthInput" type="month" />
+          </div>
+        </header>
+
+        <section class="card">
+          <h2>Income vs Expense</h2>
+          <div class="chart-grid">
+            <div class="chart-container">
+              <canvas id="incomeExpenseChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Breakdown</h2>
+          <div class="breakdown-grid">
+            <div>
+              <h3>Monthly Income Breakdown</h3>
+              <div class="table-wrap">
+                <table class="entries-table">
+                  <thead>
+                    <tr><th>Category</th><th class="right">Amount</th></tr>
+                  </thead>
+                  <tbody id="incomeBreakdownBody"></tbody>
+                </table>
+              </div>
+            </div>
+            <div>
+              <h3>Monthly Expense Breakdown</h3>
+              <div class="table-wrap">
+                <table class="entries-table">
+                  <thead>
+                    <tr><th>Category</th><th class="right">Amount</th></tr>
+                  </thead>
+                  <tbody id="expenseBreakdownBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="/navigation.js"></script>
+    <script src="/api.js"></script>
+
+    <script>
+      (async () => {
+        window.BudgetNav.renderNav();
+        if (!window.BudgetNav.isAuthed()) {
+          window.location.href = '/login.html';
+          return;
+        }
+
+        const token = window.BudgetNav.token();
+        const els = {
+          monthInput: document.getElementById('monthInput'),
+          incomeBreakdownBody: document.getElementById('incomeBreakdownBody'),
+          expenseBreakdownBody: document.getElementById('expenseBreakdownBody'),
+          monthLabel: document.getElementById('monthLabel'),
+        };
+
+        let chart;
+
+        function formatMoney(n) {
+          const num = Number(n) || 0;
+          return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        async function load() {
+          const month = els.monthInput.value; // YYYY-MM
+          const json = await window.BudgetAPI.apiFetch(`/api/reports/monthly?month=${encodeURIComponent(month)}`, { token });
+
+          const { totals, incomeByCategory, expenseByCategory, month: m } = json || {};
+
+          // Pie income vs expense
+          const income = totals?.income || 0;
+          const expense = totals?.expense || 0;
+
+          if (chart) chart.destroy();
+
+          chart = new Chart(document.getElementById('incomeExpenseChart'), {
+            type: 'pie',
+            data: {
+              labels: ['Income', 'Expenses'],
+              datasets: [
+                {
+                  data: [income, expense],
+                  backgroundColor: ['#3ee6b6', '#ff5a6a'],
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { position: 'bottom' } },
+            },
+          });
+
+          els.incomeBreakdownBody.innerHTML = '';
+          for (const row of incomeByCategory || []) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${row.category}</td><td class="right">${formatMoney(row.amount)}</td>`;
+            els.incomeBreakdownBody.appendChild(tr);
+          }
+
+          els.expenseBreakdownBody.innerHTML = '';
+          for (const row of expenseByCategory || []) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${row.category}</td><td class="right">${formatMoney(row.amount)}</td>`;
+            els.expenseBreakdownBody.appendChild(tr);
+          }
+        }
+
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        els.monthInput.value = `${yyyy}-${mm}`;
+
+        document.addEventListener('DOMContentLoaded', () => {});
+        els.monthInput.addEventListener('change', load);
+
+        await load();
+      })().catch((e) => {
+        console.error(e);
+        alert(e?.message || 'Failed to load reports');
+      });
+    </script>
+  </body>
+</html>
+

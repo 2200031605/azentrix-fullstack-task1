@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Budget Tracker</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      /* Minimal layout safety: if the main CSS fails to load, show structure */
+      .bt-shell{display:grid;grid-template-columns:280px 1fr;min-height:100vh;}
+      @media (max-width:899px){.bt-shell{grid-template-columns:1fr;}}
+      .bt-card,.bt-main,aside,main{box-sizing:border-box;}
+    </style>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="bt-app">
+      <div id="nav"></div>
+
+
+      <!-- Sidebar + content layout -->
+      <div class="bt-shell">
+        <aside class="bt-sidebar" aria-label="Sidebar navigation">
+          <div class="bt-sidebar-inner">
+            <div class="bt-logo" aria-label="BudgetTracker logo">
+              <div class="bt-logo-mark" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2C7 2 3 6 3 11C3 16 7 22 12 22C17 22 21 16 21 11C21 6 17 2 12 2Z" stroke="white" stroke-width="2" opacity="0.9"/>
+                  <path d="M8.5 12.2L11 14.7L16 9.7" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="bt-logo-text">Budget<span>Tracker</span></div>
+            </div>
+
+            <nav class="bt-menu" aria-label="Main menu">
+              <a class="bt-menu-item is-active" href="/dashboard.html">
+                <span class="bt-menu-ico" aria-hidden="true">⌂</span>
+                Dashboard
+              </a>
+              <a class="bt-menu-item" href="/transactions.html">
+                <span class="bt-menu-ico" aria-hidden="true">⇄</span>
+                Transactions
+              </a>
+              <a class="bt-menu-item" href="/reports.html">
+                <span class="bt-menu-ico" aria-hidden="true">▦</span>
+                Reports
+              </a>
+              
+            
+
+              <button class="bt-menu-item bt-menu-logout" type="button" id="logoutBtn">
+                <span class="bt-menu-ico" aria-hidden="true">⎋</span>
+                Logout
+              </button>
+            </nav>
+
+            <div class="bt-sidebar-footer">© 2026 Budget Tracker</div>
+          </div>
+        </aside>
+
+        <main class="bt-main" aria-label="BudgetTracker Dashboard">
+          <!-- Top header (no whitespace above) -->
+          <header class="bt-topbar" aria-label="Top navigation">
+            <div class="bt-top-left">
+              <div class="bt-welcome">
+                Welcome back, <span class="bt-user" id="userName">Pavani</span> 👋
+              </div>
+              <div class="bt-date" id="currentDate">—</div>
+            </div>
+
+            <div class="bt-top-center">
+              <div class="bt-search">
+                <span class="bt-search-ico" aria-hidden="true">🔎</span>
+                <input id="searchInput" type="search" placeholder="Search transactions, categories..." />
+              </div>
+            </div>
+
+            <div class="bt-top-right">
+              <button class="bt-icon-btn" type="button" aria-label="Notifications">
+                <span aria-hidden="true">🔔</span>
+              </button>
+              <div class="bt-avatar" aria-label="User profile">P</div>
+            </div>
+          </header>
+
+          <!-- Summary cards (4 across) -->
+          <section class="bt-grid bt-grid-12 bt-summary" aria-label="Summary cards">
+            <div class="bt-col-3 bt-card bt-stat">
+              <div class="bt-stat-label">Total Balance</div>
+              <div class="bt-stat-value" id="statBalance">₹48,250</div>
+              <div class="bt-stat-sub">Managed • Savings Goal 66%</div>
+            </div>
+            <div class="bt-col-3 bt-card bt-stat">
+              <div class="bt-stat-label">Total Income</div>
+              <div class="bt-stat-value" id="statIncome">₹75,000</div>
+              <div class="bt-stat-sub">+8.0% this month</div>
+            </div>
+            <div class="bt-col-3 bt-card bt-stat">
+              <div class="bt-stat-label">Total Expenses</div>
+              <div class="bt-stat-value" id="statExpense">₹26,750</div>
+              <div class="bt-stat-sub">-3.2% lower spend</div>
+            </div>
+            <div class="bt-col-3 bt-card bt-stat">
+              <div class="bt-stat-label">Savings Goal</div>
+              <div class="bt-stat-value" id="statSavings">66%</div>
+              <div class="bt-stat-sub">₹20,000 target remaining</div>
+            </div>
+          </section>
+
+          <!-- Analytics + right rail -->
+          <section class="bt-grid bt-grid-12 bt-analytics" aria-label="Analytics">
+
+            <!-- Left (8 cols) -->
+            <div class="bt-col-8 bt-analytics-left">
+              <div class="bt-card bt-chart">
+                <div class="bt-card-head">
+                  <div>
+                    <div class="bt-card-title">Income vs Expense</div>
+                    <div class="bt-card-sub">Overview for current month</div>
+                  </div>
+                  <span class="bt-chip">Bar</span>
+                </div>
+                <div class="bt-canvas-wrap">
+                  <canvas id="barChart"></canvas>
+                </div>
+              </div>
+
+              <div class="bt-card bt-chart">
+                <div class="bt-card-head">
+                  <div>
+                    <div class="bt-card-title">Monthly Spending</div>
+                    <div class="bt-card-sub">Last 6 months</div>
+                  </div>
+                  <span class="bt-chip">Line</span>
+                </div>
+                <div class="bt-canvas-wrap">
+                  <canvas id="lineChart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right (4 cols) -->
+            <div class="bt-col-4 bt-analytics-right">
+              <div class="bt-card bt-chart bt-chart-sm">
+                <div class="bt-card-head">
+                  <div>
+                    <div class="bt-card-title">Expense Breakdown</div>
+                    <div class="bt-card-sub">By category</div>
+                  </div>
+                  <span class="bt-chip">Pie</span>
+                </div>
+                <div class="bt-canvas-wrap bt-canvas-sm">
+                  <canvas id="pieChart"></canvas>
+                </div>
+              </div>
+
+              <div class="bt-card bt-budget">
+                <div class="bt-card-head">
+                  <div>
+                    <div class="bt-card-title">Budget Progress</div>
+                    <div class="bt-card-sub">This month</div>
+                  </div>
+                </div>
+
+                <div class="bt-budget-top">
+                  <div>
+                    <div class="bt-budget-label">Budget used</div>
+                    <div class="bt-budget-val" id="budgetUsed">₹26,750</div>
+                  </div>
+                  <div>
+                    <div class="bt-budget-label">Remaining</div>
+                    <div class="bt-budget-val" id="budgetRemaining">₹13,250</div>
+                  </div>
+                </div>
+
+                <div class="bt-budget-bar">
+                  <div class="bt-budget-fill" id="budgetBarFill" style="width:66%"></div>
+                </div>
+                <div class="bt-budget-footer" id="budgetFooter">66% of monthly budget used</div>
+              </div>
+            </div>
+
+            <!-- Quick Add floating card -->
+            <div class="bt-quick-wrap" aria-label="Quick Add Transaction">
+              <div class="bt-quick-card bt-card">
+                <div class="bt-quick-head">
+                  <div>
+                    <div class="bt-card-title">Quick Add</div>
+                    <div class="bt-card-sub">Fast entry</div>
+                  </div>
+                </div>
+
+                <form class="bt-quick-form" onsubmit="return false">
+                  <div class="bt-quick-grid">
+                    <div class="bt-field">
+                      <label>Type</label>
+                      <select>
+                        <option value="expense" selected>Expense</option>
+                        <option value="income">Income</option>
+                      </select>
+                    </div>
+                    <div class="bt-field">
+                      <label>Category</label>
+                      <input type="text" placeholder="Food" />
+                    </div>
+                    <div class="bt-field">
+                      <label>Amount</label>
+                      <input type="number" placeholder="2500" step="0.01" min="0" />
+                    </div>
+                    <div class="bt-field">
+                      <label>Date</label>
+                      <input type="date" />
+                    </div>
+                  </div>
+      <a class="bt-btn bt-btn-primary" id="goTransactionsBtn" href="/transactions.html" style="text-decoration:none;display:inline-block;text-align:center;">
+                    Add Transaction
+                  </a>
+                </form>
+              </div>
+            </div>
+          </section>
+
+         
+
+              
+          </section>
+
+        </main>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="/navigation.js"></script>
+
+    <script>
+      // Fix: dashboard uses localStorage directly; no API files required.
+
+      window.addEventListener('DOMContentLoaded', () => {
+        // Navigation handled by the anchor href
+      });
+
+      (async () => {
+        // Optional nav rendering (works even without auth)
+      window.BudgetNav?.renderNav?.();
+
+        if (window.BudgetNav && !window.BudgetNav.isAuthed()) {
+          window.location.href = '/login.html';
+          return;
+        }
+
+        const dateEl = document.getElementById('currentDate');
+        if (dateEl) {
+          const d = new Date();
+          dateEl.textContent = d.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: '2-digit' });
+        }
+
+        function formatMoney(n) {
+          const num = Number(n) || 0;
+          return '₹' + num.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+
+        function formatMoney2(n) {
+          const num = Number(n) || 0;
+          return '₹' + num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function yyyymm(d) {
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        }
+
+        const STORAGE_KEY = 'budget_entries_v1';
+        function loadEntries() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            const parsed = raw ? JSON.parse(raw) : [];
+            return Array.isArray(parsed) ? parsed : [];
+          } catch {
+            return [];
+          }
+        }
+
+        function normalizeCategory(s) {
+          return String(s || '').trim() || 'Uncategorized';
+        }
+
+        const now = new Date();
+        const currentMonth = yyyymm(now);
+
+        let barChart, lineChart, pieChart;
+        function destroyCharts() {
+          if (barChart) barChart.destroy();
+          if (lineChart) lineChart.destroy();
+          if (pieChart) pieChart.destroy();
+          barChart = lineChart = pieChart = null;
+        }
+
+        function monthKeyFromDate(dateStr) {
+          return String(dateStr || '').slice(0, 7); // YYYY-MM
+        }
+
+        function computeMonthlyFromEntries(allEntries, month) {
+          const entries = allEntries.filter((e) => monthKeyFromDate(e.date) === month);
+
+          let income = 0;
+          let expense = 0;
+          const expenseByCategory = new Map();
+
+          for (const e of entries) {
+            const amt = Number(e.amount) || 0;
+            if (e.type === 'income') income += amt;
+            else if (e.type === 'expense') {
+              expense += amt;
+              const cat = normalizeCategory(e.category);
+              expenseByCategory.set(cat, (expenseByCategory.get(cat) || 0) + amt);
+            }
+          }
+
+          const net = income - expense;
+          const expenseByCategoryArr = Array.from(expenseByCategory.entries())
+            .map(([category, amount]) => ({ category, amount }))
+            .sort((a, b) => b.amount - a.amount);
+
+          return { entries, totals: { income, expense, net }, expenseByCategory: expenseByCategoryArr };
+        }
+
+        function renderTransactions(txs) {
+          const tbody = document.getElementById('txBody');
+          if (!tbody) return;
+          tbody.innerHTML = '';
+
+          const sorted = [...txs].sort((a, b) => (a.date < b.date ? 1 : -1));
+          const slice = sorted.slice(0, 10);
+
+          if (!slice.length) {
+            tbody.innerHTML = `<tr><td colspan="6" style="opacity:.7;">No transactions this month.</td></tr>`;
+            return;
+          }
+
+          for (const t of slice) {
+            const typeLabel = t.type === 'income' ? 'Income' : 'Expense';
+            const tagClass = t.type === 'income' ? 'bt-tag-income' : 'bt-tag-expense';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${t.date}</td>
+              <td>${String(t.category || '').replaceAll('<', '<').replaceAll('>', '>')}</td>
+              <td><span class="bt-tag ${tagClass}">${typeLabel}</span></td>
+              <td class="bt-right">${formatMoney2(t.amount)}</td>
+              <td><span class="bt-badge bt-badge-ok">Completed</span></td>
+              <td>
+                <div class="bt-row-actions">
+                  <button class="bt-icon-btn bt-icon-btn-edit" type="button">Edit</button>
+                  <button class="bt-icon-btn bt-icon-btn-del" type="button">Delete</button>
+                </div>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          }
+        }
+
+        function renderCharts(monthly) {
+          destroyCharts();
+
+          const totals = monthly?.totals || { income: 0, expense: 0, net: 0 };
+          const income = totals.income || 0;
+          const expense = totals.expense || 0;
+          const net = totals.net ?? (income - expense);
+
+          // Bar
+          const bar = document.getElementById('barChart');
+          if (bar) {
+            barChart = new Chart(bar, {
+              type: 'bar',
+              data: {
+                labels: ['Income', 'Expenses'],
+                datasets: [
+                  {
+                    data: [income, expense],
+                    backgroundColor: ['#3B82F6', '#EF4444'],
+                    borderRadius: 12,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255,255,255,.08)' },
+                    ticks: {
+                      color: 'rgba(255,255,255,.75)',
+                      callback: (v) => '₹' + Number(v).toLocaleString(undefined, { maximumFractionDigits: 0 }),
+                    },
+                  },
+                  x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,.75)' } },
+                },
+              },
+            });
+          }
+
+          // Pie
+          const pieEl = document.getElementById('pieChart');
+          const pieData = monthly?.expenseByCategory || [];
+          const pieLabels = pieData.map((x) => x.category);
+          const pieVals = pieData.map((x) => x.amount);
+          if (pieEl) {
+            const palette = ['#3B82F6', '#8B5CF6', '#EF4444', '#22C55E', '#F59E0B', '#06B6D4', '#A78BFA', '#10B981'];
+            pieChart = new Chart(pieEl, {
+              type: 'pie',
+              data: {
+                labels: pieLabels.length ? pieLabels : ['No expenses'],
+                datasets: [
+                  {
+                    data: pieVals.length ? pieVals : [0],
+                    backgroundColor: pieLabels.map((_, i) => palette[i % palette.length]),
+                    borderWidth: 0,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { position: 'bottom', labels: { boxWidth: 10, color: 'rgba(255,255,255,.75)' } },
+                },
+              },
+            });
+          }
+
+          // Stats
+          document.getElementById('statBalance').textContent = formatMoney(net);
+          document.getElementById('statIncome').textContent = formatMoney(income);
+          document.getElementById('statExpense').textContent = formatMoney(expense);
+
+          const savingsPct = income > 0 ? Math.round((net / income) * 100) : 0;
+          document.getElementById('statSavings').textContent = `${savingsPct}%`;
+
+          // Budget progress (derive: budget = income)
+          const budget = income;
+          const remaining = budget - expense;
+          const pct = budget > 0 ? Math.max(0, Math.min(100, (expense / budget) * 100)) : 0;
+
+          document.getElementById('budgetUsed').textContent = formatMoney(expense);
+          document.getElementById('budgetRemaining').textContent = formatMoney(remaining);
+          document.getElementById('budgetBarFill').style.width = `${pct.toFixed(0)}%`;
+          document.getElementById('budgetFooter').textContent = `${pct.toFixed(0)}% of monthly budget used`;
+        }
+
+        function renderLineChart(allEntries) {
+          const line = document.getElementById('lineChart');
+          if (!line) return;
+
+          const labels = [];
+          const data = [];
+
+          for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const m = yyyymm(d);
+            labels.push(d.toLocaleString(undefined, { month: 'short' }));
+            const rep = computeMonthlyFromEntries(allEntries, m);
+            data.push(rep.totals.expense || 0);
+          }
+
+          lineChart = new Chart(line, {
+            type: 'line',
+            data: {
+              labels,
+              datasets: [
+                {
+                  label: 'Monthly Expenses',
+                  data,
+                  borderColor: '#8B5CF6',
+                  backgroundColor: 'rgba(139,92,246,.18)',
+                  fill: true,
+                  tension: 0.35,
+                  pointRadius: 4,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  grid: { color: 'rgba(255,255,255,.08)' },
+                  ticks: {
+                    color: 'rgba(255,255,255,.75)',
+                    callback: (v) => '₹' + Number(v).toLocaleString(undefined, { maximumFractionDigits: 0 }),
+                  },
+                },
+                x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,.75)' } },
+              },
+            },
+          });
+        }
+
+        // IMPORTANT: Dashboard Recent Transactions must use the same backend data source
+        // as Transactions page (MongoDB via /api/transactions), not localStorage.
+        const token = window.BudgetNav?.token?.() || '';
+
+        async function fetchCurrentMonthTx() {
+          const month = currentMonth;
+          try {
+            const json = await window.BudgetAPI.apiFetch(`/api/transactions?month=${encodeURIComponent(month)}`, {
+              token,
+            });
+            return json?.data || [];
+          } catch {
+            return [];
+          }
+        }
+
+        function computeMonthlyFromTx(txs) {
+          let income = 0;
+          let expense = 0;
+          const expenseByCategory = new Map();
+
+          for (const t of txs) {
+            const amt = Number(t.amount) || 0;
+            if (t.type === 'income') income += amt;
+            else if (t.type === 'expense') {
+              expense += amt;
+              const cat = normalizeCategory(t.category);
+              expenseByCategory.set(cat, (expenseByCategory.get(cat) || 0) + amt);
+            }
+          }
+
+          const net = income - expense;
+          const expenseByCategoryArr = Array.from(expenseByCategory.entries())
+            .map(([category, amount]) => ({ category, amount }))
+            .sort((a, b) => b.amount - a.amount);
+
+          return { entries: txs, totals: { income, expense, net }, expenseByCategory: expenseByCategoryArr };
+        }
+
+        const recentTxs = await fetchCurrentMonthTx();
+        const monthly = computeMonthlyFromTx(recentTxs);
+
+        renderTransactions(monthly.entries);
+        renderCharts(monthly);
+
+        // Keep existing line chart behavior from localStorage for now (it is optional UI)
+        // If you want line chart to also be API-driven, we can extend the fetch to 6 months.
+        const allEntries = loadEntries();
+        renderLineChart(allEntries);
+      })();
+    </script>
+  </body>
+</html>
+
+

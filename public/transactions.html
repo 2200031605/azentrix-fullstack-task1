@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Transactions - Budget Tracker</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <div id="nav"></div>
+
+      <main class="content">
+        <header class="header">
+          <div>
+            <h1>Transactions</h1>
+            <p class="subtitle">Add and manage your income/expense entries.</p>
+          </div>
+
+          <div class="filters">
+            <div class="field">
+              <label for="monthInput">Month</label>
+              <input id="monthInput" type="month" />
+            </div>
+            <div class="field">
+              <label for="categoryFilter">Category</label>
+              <input id="categoryFilter" type="text" placeholder="All categories" />
+            </div>
+          </div>
+        </header>
+
+        <section class="card">
+          <h2>Add Transaction</h2>
+          <form id="txForm" class="form">
+            <input type="hidden" id="editId" />
+
+            <div class="field">
+              <label for="typeInput">Type</label>
+              <select id="typeInput" required>
+                <option value="expense" selected>Expense</option>
+                <option value="income">Income</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="amountInput">Amount</label>
+              <input id="amountInput" type="number" step="0.01" min="0" required />
+            </div>
+
+            <div class="field">
+              <label for="categoryInput">Category</label>
+              <input id="categoryInput" type="text" placeholder="Food, Travel, Salary..." required />
+            </div>
+
+            <div class="field">
+              <label for="dateInput">Date</label>
+              <input id="dateInput" type="date" required />
+            </div>
+
+            <div class="field" style="grid-column: span 2;">
+              <label for="notesInput">Notes (optional)</label>
+              <input id="notesInput" type="text" placeholder="e.g. dinner with friends" />
+            </div>
+
+            <div class="actions" style="grid-column: span 2;">
+              <button class="btn primary" type="submit" id="submitBtn">Save</button>
+              <button class="btn" type="button" id="resetBtn">Reset</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="card">
+          <div class="entries-header">
+            <h2 style="margin:0">Transaction History</h2>
+            <div class="inline">
+              <input id="searchInput" class="search" type="search" placeholder="Search..." />
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="entries-table" aria-label="Transactions table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Category</th>
+                  <th class="right">Amount</th>
+                  <th class="right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="entriesBody"></tbody>
+            </table>
+          </div>
+
+          <div id="emptyState" class="empty">No transactions for this filter.</div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/navigation.js"></script>
+    <script src="/api.js"></script>
+
+    <script>
+      (async () => {
+        window.BudgetNav.renderNav();
+        // Transactions page can also work without auth (uses localStorage-style dashboard data)
+        // If you prefer auth-only behavior, re-enable the redirect below.
+        // if (!window.BudgetNav.isAuthed()) {
+        //   window.location.href = '/login.html';
+        //   return;
+        // }
+
+        const els = {
+          monthInput: document.getElementById('monthInput'),
+          categoryFilter: document.getElementById('categoryFilter'),
+          searchInput: document.getElementById('searchInput'),
+          form: document.getElementById('txForm'),
+          editId: document.getElementById('editId'),
+          typeInput: document.getElementById('typeInput'),
+          amountInput: document.getElementById('amountInput'),
+          categoryInput: document.getElementById('categoryInput'),
+          dateInput: document.getElementById('dateInput'),
+          notesInput: document.getElementById('notesInput'),
+          submitBtn: document.getElementById('submitBtn'),
+          resetBtn: document.getElementById('resetBtn'),
+          entriesBody: document.getElementById('entriesBody'),
+          emptyState: document.getElementById('emptyState'),
+        };
+
+        let token = window.BudgetNav.token();
+
+        let cached = [];
+
+        function ensureToken() {
+          token = window.BudgetNav.token();
+          if (!token) throw new Error('Missing token. Please login first.');
+          return token;
+        }
+
+        function todayISO() {
+          const d = new Date();
+          const yyyy = d.getFullYear();
+          const mm = String(d.getMonth() + 1).padStart(2, '0');
+          const dd = String(d.getDate()).padStart(2, '0');
+          return `${yyyy}-${mm}-${dd}`;
+        }
+
+        function formatMoney(n) {
+          const num = Number(n) || 0;
+          return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatDate(dateStr) {
+          if (!dateStr) return '';
+          const [y, m, d] = String(dateStr).split('-');
+          return `${d}-${m}-${y}`;
+        }
+
+        function uidFromTx(tx) {
+          return String(tx._id || tx.id || '');
+        }
+
+        function setEdit(tx) {
+          els.editId.value = uidFromTx(tx);
+          els.typeInput.value = tx.type;
+          els.amountInput.value = tx.amount;
+          els.categoryInput.value = tx.category;
+          els.dateInput.value = tx.date;
+          els.notesInput.value = tx.notes || '';
+          els.submitBtn.textContent = 'Update';
+        }
+
+        function resetForm() {
+          els.editId.value = '';
+          els.form.reset();
+          els.submitBtn.textContent = 'Save';
+          els.typeInput.value = 'expense';
+          els.dateInput.value = todayISO();
+          els.notesInput.value = '';
+        }
+
+        function applyFilters(txs) {
+          const month = els.monthInput.value; // YYYY-MM
+          const catQ = (els.categoryFilter.value || '').trim().toLowerCase();
+          const search = (els.searchInput.value || '').trim().toLowerCase();
+
+          return txs.filter((t) => {
+            const tMonth = String(t.date || '').slice(0, 7);
+            if (month && tMonth !== month) return false;
+
+            if (catQ) {
+              const c = String(t.category || '').toLowerCase();
+              if (!c.includes(catQ)) return false;
+            }
+
+            if (search) {
+              const blob = `${t.date || ''} ${t.type || ''} ${t.category || ''} ${t.notes || ''}`.toLowerCase();
+              if (!blob.includes(search)) return false;
+            }
+            return true;
+          });
+        }
+
+        async function fetchAllForMonth(month) {
+          const url = month ? `/api/transactions?month=${encodeURIComponent(month)}` : '/api/transactions';
+          const json = await window.BudgetAPI.apiFetch(url, { token });
+          return json.data || [];
+        }
+
+        function renderTable(list) {
+          els.entriesBody.innerHTML = '';
+
+          if (!list.length) {
+            els.emptyState.classList.add('show');
+            return;
+          }
+          els.emptyState.classList.remove('show');
+
+          const sorted = [...list].sort((a, b) => (a.date < b.date ? 1 : -1));
+
+          for (const t of sorted) {
+            const id = uidFromTx(t);
+            const badgeClass = t.type === 'income' ? 'income' : 'expense';
+            const badgeText = t.type === 'income' ? 'Income' : 'Expense';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${formatDate(t.date)}</td>
+              <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+              <td>${String(t.category || '').replaceAll('<', '<').replaceAll('>', '>')}</td>
+              <td class="right">${formatMoney(t.amount)} </td>
+              <td class="right">
+                <div class="row-actions">
+                  <button class="icon-btn edit" type="button" data-action="edit" data-id="${id}">Edit</button>
+                  <button class="icon-btn delete" type="button" data-action="delete" data-id="${id}">Del</button>
+                </div>
+              </td>
+            `;
+            els.entriesBody.appendChild(tr);
+          }
+
+          els.entriesBody.querySelectorAll('button[data-action]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+              const id = btn.getAttribute('data-id');
+              const action = btn.getAttribute('data-action');
+              const tx = cached.find((x) => uidFromTx(x) === id);
+              if (!tx) return;
+
+              if (action === 'edit') {
+                setEdit(tx);
+                return;
+              }
+
+              if (action === 'delete') {
+                if (!confirm('Delete this transaction?')) return;
+                await window.BudgetAPI.apiFetch(`/api/transactions/${encodeURIComponent(id)}`, {
+                  method: 'DELETE',
+                  token,
+                });
+                await refresh();
+              }
+            });
+          });
+        }
+
+        async function refresh() {
+          const month = els.monthInput.value;
+          ensureToken();
+          cached = await fetchAllForMonth(month);
+          const filtered = applyFilters(cached);
+          renderTable(filtered);
+        }
+
+        els.form.addEventListener('submit', async (e) => {
+          ensureToken();
+          e.preventDefault();
+          const type = els.typeInput.value;
+          const amount = Number(els.amountInput.value);
+          const category = (els.categoryInput.value || '').trim();
+          const date = els.dateInput.value;
+          const notes = (els.notesInput.value || '').trim();
+
+          if (!category) return alert('Enter a category');
+          if (!date) return alert('Enter a date');
+          if (!Number.isFinite(amount) || amount < 0) return alert('Enter a valid amount');
+
+          const editId = els.editId.value;
+          if (editId) {
+            await window.BudgetAPI.apiFetch(`/api/transactions/${encodeURIComponent(editId)}`, {
+              method: 'PUT',
+              token,
+              body: { type, amount, category, date, notes },
+            });
+          } else {
+            await window.BudgetAPI.apiFetch('/api/transactions', {
+              method: 'POST',
+              token,
+              body: { type, amount, category, date, notes },
+            });
+          }
+
+          resetForm();
+          await refresh();
+        });
+
+        els.resetBtn.addEventListener('click', () => {
+          resetForm();
+          refresh();
+        });
+
+        els.monthInput.addEventListener('change', refresh);
+        els.categoryFilter.addEventListener('input', () => renderTable(applyFilters(cached)));
+        els.searchInput.addEventListener('input', () => renderTable(applyFilters(cached)));
+
+        // init month
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        els.monthInput.value = `${yyyy}-${mm}`;
+        els.dateInput.value = todayISO();
+
+        resetForm();
+        await refresh();
+      })().catch((e) => {
+        console.error(e);
+        alert(e?.message || 'Failed');
+      });
+    </script>
+  </body>
+</html>
+

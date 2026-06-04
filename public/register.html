@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register - Budget Tracker</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <div id="nav"></div>
+
+      <main class="register-shell">
+        <section class="register-left">
+          <div class="brand">
+            <div class="brand-icon" aria-hidden="true">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C7 2 3 6 3 11C3 16 7 22 12 22C17 22 21 16 21 11C21 6 17 2 12 2Z" stroke="white" stroke-width="2" opacity="0.9"/>
+                <path d="M8.5 12.2L11 14.7L16 9.7" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span class="brand-text">BudgetTracker</span>
+          </div>
+
+          <h1>
+            Take Control of Your <span class="grad">Finances</span>
+          </h1>
+
+          <p class="lead">Track your income, manage expenses, and achieve your financial goals with ease.</p>
+
+          <div class="register-illustration" aria-hidden="true">
+            <div class="illus-card" style="--i:0">
+              <div class="illus-title">Analytics</div>
+              <div class="illus-pie">
+                <div class="slice slice-a"></div>
+                <div class="slice slice-b"></div>
+                <div class="slice slice-c"></div>
+              </div>
+              <div class="illus-row"><span class="dot dot-1"></span> Income</div>
+              <div class="illus-row"><span class="dot dot-2"></span> Expenses</div>
+            </div>
+
+            <div class="illus-card" style="--i:1">
+              <div class="illus-title">Reports</div>
+              <div class="illus-bars">
+                <div class="bar" style="height:68%"></div>
+                <div class="bar" style="height:45%"></div>
+                <div class="bar" style="height:78%"></div>
+                <div class="bar" style="height:52%"></div>
+              </div>
+              <div class="illus-phone">
+                <div class="phone-top"></div>
+                <div class="phone-body">
+                  <div class="phone-line w70"></div>
+                  <div class="phone-line w90"></div>
+                  <div class="phone-line w60"></div>
+                  <div class="phone-chip"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="illus-coins" style="--i:2">
+              <span class="coin"></span>
+              <span class="coin coin-2"></span>
+              <span class="coin coin-3"></span>
+            </div>
+          </div>
+
+          <ul class="feature-list">
+            <li>
+              <span class="feat-ico" aria-hidden="true">🔒</span>
+              <span>Secure &amp; Private</span>
+            </li>
+            <li>
+              <span class="feat-ico" aria-hidden="true">✨</span>
+              <span>Smart Analytics</span>
+            </li>
+            <li>
+              <span class="feat-ico" aria-hidden="true">🎯</span>
+              <span>Achieve Goals</span>
+            </li>
+            <li>
+              <span class="feat-ico" aria-hidden="true">🌍</span>
+              <span>Access Anywhere</span>
+            </li>
+          </ul>
+
+          <footer class="register-footer">© 2026 Budget Tracker. All rights reserved.</footer>
+        </section>
+
+        <section class="register-right">
+          <div class="register-card">
+            <div class="card-top">
+              <div class="card-avatar" aria-hidden="true">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M8.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M20 8v6" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M23 11h-6" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div>
+                <h2 class="card-title">Create Your Account</h2>
+                <p class="card-sub">Join thousands of users managing their finances better</p>
+              </div>
+            </div>
+
+            <form id="registerForm" class="reg-form" autocomplete="off">
+              <div class="input-wrap">
+                <span class="input-ico" aria-hidden="true">👤</span>
+                <input id="name" type="text" placeholder="Full Name" required />
+              </div>
+
+              <div class="input-wrap">
+                <span class="input-ico" aria-hidden="true">✉️</span>
+                <input id="email" type="email" placeholder="Email Address" required />
+              </div>
+
+              <div class="input-wrap">
+                <span class="input-ico" aria-hidden="true">🔒</span>
+                <input id="password" type="password" placeholder="Password" required />
+                <button class="toggle-visibility" type="button" data-toggle="password" aria-label="Show password">
+                  👁️
+                </button>
+              </div>
+
+              <div class="input-wrap">
+                <span class="input-ico" aria-hidden="true">🔒</span>
+                <input id="confirmPassword" type="password" placeholder="Confirm Password" required />
+                <button class="toggle-visibility" type="button" data-toggle="confirmPassword" aria-label="Show confirm password">
+                  👁️
+                </button>
+              </div>
+
+              <div class="pw-req">
+                <div class="pw-req-title">Password Requirements</div>
+                <ul class="pw-req-list">
+                  <li>At least 8 characters</li>
+                  <li>One uppercase letter</li>
+                  <li>One number</li>
+                  <li>One special character</li>
+                </ul>
+              </div>
+
+              <button class="create-btn" type="submit">Create Account</button>
+
+              <p class="bottom-text">
+                Already have an account? <a href="/login.html">Login</a>
+              </p>
+
+              <div id="authError" class="error" role="alert" style="display:none"></div>
+            </form>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/navigation.js"></script>
+    <script src="/api.js"></script>
+    <script src="/auth.js"></script>
+
+    <script>
+      window.addEventListener('DOMContentLoaded', () => {
+        window.BudgetNav.renderNav();
+
+        const form = document.getElementById('registerForm');
+        const err = document.getElementById('authError');
+
+        // Password visibility toggles
+        document.querySelectorAll('.toggle-visibility').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-toggle');
+            const input = document.getElementById(id);
+            if (!input) return;
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+          });
+        });
+
+        function validatePasswordRules(pw) {
+          const min8 = typeof pw === 'string' && pw.length >= 8;
+          const upper = /[A-Z]/.test(pw);
+          const number = /[0-9]/.test(pw);
+          const special = /[^A-Za-z0-9]/.test(pw);
+          return min8 && upper && number && special;
+        }
+
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          err.style.display = 'none';
+
+          const name = document.getElementById('name').value.trim();
+          const email = document.getElementById('email').value.trim();
+          const password = document.getElementById('password').value;
+          const confirmPassword = document.getElementById('confirmPassword').value;
+
+          if (!name) return;
+          if (password !== confirmPassword) {
+            err.textContent = 'Passwords do not match';
+            err.style.display = 'block';
+            return;
+          }
+
+          if (!validatePasswordRules(password)) {
+            err.textContent = 'Password must be at least 8 chars, include 1 uppercase, 1 number, and 1 special character.';
+            err.style.display = 'block';
+            return;
+          }
+
+          try {
+            await window.BudgetAuth.register({ name, email, password });
+            window.location.href = '/login.html';
+          } catch (e2) {
+            const msg = e2?.message || 'Register failed';
+            // If backend returns 409 (email already registered), show a nicer message.
+            if (String(msg).toLowerCase().includes('already')) {
+              err.textContent = 'This email is already registered. Try logging in.';
+            } else {
+              err.textContent = msg;
+            }
+            err.style.display = 'block';
+          }
+
+        });
+      });
+    </script>
+  </body>
+</html>
+
